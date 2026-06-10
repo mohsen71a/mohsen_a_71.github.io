@@ -402,7 +402,7 @@
     }
     startTypingEffect();
 
-    // ---------- مدیریت آلبوم ----------
+    // ---------- مدیریت آلبوم (اصلاح شده: فقط جلد بسته نمایش داده می‌شود، باز شدن با کلیک روی جلد) ----------
     const overlay = document.getElementById('albumOverlay');
     const closedAlbumDiv = document.getElementById('closedAlbum');
     const openedAlbumDiv = document.getElementById('openedAlbum');
@@ -413,8 +413,8 @@
     const pageRightDiv = document.getElementById('pageRight');
 
     // عکس‌های صفحات
-    const page1LeftSrc = "assets/1.WEBP";
-    const page1RightSrc = "assets/2.WEBP";
+    const page1LeftSrc = "assets/3.jpg";
+    const page1RightSrc = "assets/5.jpg";
     const page2LeftSrc = "assets/5.jpg";
     const page2RightSrc = "assets/3.jpg";
 
@@ -458,6 +458,7 @@
             overlay.classList.remove('active');
             openedAlbumDiv.classList.remove('active', 'book-close');
             closedAlbumDiv.style.display = 'flex';
+            openedAlbumDiv.style.display = 'none';   // مهم: بعد از بستن، کتاب مخفی شود
             currentPage = 1;
             updateContent();
             openedAlbumDiv.style.animation = 'none';
@@ -466,26 +467,32 @@
         }, 400);
     }
 
-    function openAlbum() {
+    // تابع جدید: فقط جلد بسته را نشان بده (بدون باز کردن خودکار)
+    function showClosedAlbumOnly() {
         overlay.classList.add('active');
         closedAlbumDiv.style.display = 'flex';
+        openedAlbumDiv.style.display = 'none';
         openedAlbumDiv.classList.remove('active');
-        setTimeout(() => {
-            closedAlbumDiv.style.display = 'none';
-            openedAlbumDiv.classList.add('active');
-            currentPage = 1;
-            updateContent();
-        }, 50);
+        currentPage = 1;
+        updateContent();
     }
 
-    albumBtn.addEventListener('click', openAlbum);
-    closedAlbumDiv.addEventListener('click', () => {
+    // تابع باز کردن کتاب (زمانی که کاربر روی جلد کلیک می‌کند)
+    function openBookFromClosed() {
         closedAlbumDiv.style.display = 'none';
+        openedAlbumDiv.style.display = 'block';
         openedAlbumDiv.classList.add('active');
         currentPage = 1;
         updateContent();
-    });
+    }
 
+    // کلیک روی دکمه آلبوم: فقط جلد بسته را نشان بده
+    albumBtn.addEventListener('click', showClosedAlbumOnly);
+
+    // کلیک روی جلد بسته: کتاب را باز کن
+    closedAlbumDiv.addEventListener('click', openBookFromClosed);
+
+    // رویدادهای ورق زدن و بستن (بدون تغییر)
     pageLeftDiv.addEventListener('click', (e) => {
         if (e.target.closest('img')) {
             if (currentPage === 1) flipToNext();
@@ -509,6 +516,30 @@
 
     updateContent();
 </script>
+
+<!-- تگ صوتی مخفی (موسیقی پس‌زمینه) -->
+<audio id="bgMusic" loop preload="auto" style="display:none">
+    <source src="assets/88.mp3" type="audio/mpeg">
+    <!-- لطفاً فایل آهنگ خود را در پوشه assets قرار داده و src را به "assets/music.mp3" تغییر دهید -->
+</audio>
+
+<script>
+    // پخش موسیقی با اولین کلیک یا لمس کاربر روی هر جای صفحه (بدون دکمه اضافی)
+    let musicStarted = false;
+    const audioEl = document.getElementById('bgMusic');
+
+    function startMusicOnce() {
+        if (musicStarted) return;
+        musicStarted = true;
+        audioEl.play().catch(e => console.log("خطا در پخش:", e));
+        document.removeEventListener('click', startMusicOnce);
+        document.removeEventListener('touchstart', startMusicOnce);
+    }
+
+    document.addEventListener('click', startMusicOnce);
+    document.addEventListener('touchstart', startMusicOnce);
+</script>
+
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
